@@ -52,7 +52,21 @@ export async function edgeTtsPlay(text: string, voice = "zh-CN-XiaoxiaoNeural"):
   ttsInstance.tts.setVoiceParams({ text: text.trim(), voice });
 
   const fileName = `tts-output-${crypto.randomUUID()}-${ttsInstance.tts.fileType.ext}`;
-  const blob: Blob = await ttsInstance.ttsToFile(fileName);
+  let blob: Blob;
+  try {
+    blob = await ttsInstance.ttsToFile(fileName);
+  } catch (error) {
+    // Microsoft's speech.platform.bing.com only accepts this websocket connection from the
+    // real Microsoft Edge browser (rejects with HTTP 403 otherwise). Browsers forbid JS from
+    // overriding the User-Agent header, so this can't be worked around client-side — not in
+    // this browser, and not inside Anki's own review window either. See README for detail.
+    console.error("Edge TTS websocket failed:", error);
+    throw new Error(
+      "Edge TTS only works in the real Microsoft Edge browser — Microsoft's server rejects " +
+      "this connection from Chrome, Firefox, Safari, and Anki's own review window. Switch to " +
+      "the Piper engine in Settings (offline, works everywhere) or open this page in Edge."
+    );
+  }
 
   const url = URL.createObjectURL(blob);
   edgeAudio = new Audio(url);
