@@ -7,6 +7,8 @@
   "scripts": {
     "build": "tsc",
     "watch": "tsc -w",
+    "build:relay": "tsc -p tsconfig.relay.json",
+    "relay": "node scripts/edge-tts-relay.js",
     "serve": "node scripts/serve.mjs",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -24,7 +26,12 @@
     "url": "https://github.com/krmanik/anki-tts/issues"
   },
   "homepage": "https://github.com/krmanik/anki-tts#readme",
+  "dependencies": {
+    "ws": "^8.21.3"
+  },
   "devDependencies": {
+    "@types/node": "^26.2.0",
+    "@types/ws": "^8.18.1",
     "typescript": "^5.5.0"
   }
 }

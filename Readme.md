@@ -2,10 +2,13 @@
 
 Text-to-speech in Anki card templates. Two engines, switchable at review time:
 
-- **Microsoft Edge** — online, wide voice selection (the original engine).
-- **Piper** — offline, on-device neural TTS. Voices are downloaded on first use from
-  [rhasspy/piper-voices](https://huggingface.co/rhasspy/piper-voices) and cached in the
-  browser, so review works without a network connection after that.
+- **Microsoft Edge** — online, wide voice selection (the original engine). Microsoft's
+  server only accepts this connection from the real Microsoft Edge browser, so it fails
+  everywhere else (Chrome, Firefox, Safari, and Anki's own review window) unless the
+  [local relay](#edge-tts-outside-microsoft-edge) below is running.
+- **Piper** — offline, on-device neural TTS, works in any browser. Voices are downloaded
+  on first use from [rhasspy/piper-voices](https://huggingface.co/rhasspy/piper-voices)
+  and cached in the browser, so review works without a network connection after that.
 
 ### Usage
 
@@ -40,6 +43,23 @@ If you need to call a specific engine directly instead of the saved selection, b
 ![](imgs/card_template.png)
 
 ![](imgs/image.png)
+
+### Edge TTS outside Microsoft Edge
+
+`speech.platform.bing.com` checks the browser's real `User-Agent` header and rejects
+everything but actual Microsoft Edge — browsers forbid JS from overriding that header, so
+this can't be fixed client-side, in this library or any other, in any browser (including
+Anki's own review window). `npm run relay` gets around this by making the connection from
+outside the browser sandbox, in Node on your own machine, where custom headers are legal:
+
+```bash
+npm run build:relay
+npm run relay   # listens on http://127.0.0.1:8811, localhost only
+```
+
+Leave it running while you review; the Edge engine detects it automatically and uses it
+instead of the direct (Edge-only) connection. No relay running just means Edge TTS falls
+back to "real Edge browser only," same as before — everything else is unaffected.
 
 ### Development
 
