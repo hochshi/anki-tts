@@ -8,6 +8,7 @@ interface VoiceOption { readonly value: string; readonly label: string; }
 type VoiceDict = Record<string, VoiceOption[]>;
 
 let dict: VoiceDict = {};
+let localeNames: Record<string, string> = {};
 let piperVoicesByKey: Record<string, PiperVoice> = {};
 
 export function getProvider(): TtsProvider {
@@ -24,8 +25,10 @@ export function getPiperLocal(): [string, string] {
 
 function groupEdgeVoices(voices: EdgeVoice[]): VoiceDict {
   const dict: VoiceDict = {};
+  localeNames = {};
   for (const voice of voices) {
     const locale = voice.Locale.split("-")[0] || "default";
+    if (!(locale in localeNames)) localeNames[locale] = voice.LocaleName.split("(")[0].trim();
     (dict[locale] ??= []).push({ value: voice.ShortName, label: voice.FriendlyName });
   }
   return dict;
@@ -33,9 +36,11 @@ function groupEdgeVoices(voices: EdgeVoice[]): VoiceDict {
 
 function groupPiperVoices(voices: Record<string, PiperVoice>): VoiceDict {
   const dict: VoiceDict = {};
+  localeNames = {};
   piperVoicesByKey = voices;
   for (const voice of Object.values(voices)) {
     const locale = voice.language.family || "default";
+    if (!(locale in localeNames)) localeNames[locale] = voice.language.name_english;
     (dict[locale] ??= []).push({ value: voice.key, label: `${voice.name} (${voice.quality})` });
   }
   return dict;
@@ -111,10 +116,11 @@ function setLocale(): void {
   const localeSelect = document.getElementById("localeSelect") as HTMLSelectElement;
   localeSelect.innerHTML = "";
 
-  for (const key of Object.keys(dict)) {
+  const keys = Object.keys(dict).sort((a, b) => (localeNames[a] || a).localeCompare(localeNames[b] || b));
+  for (const key of keys) {
     const option = document.createElement("option");
     option.value = key;
-    option.text = key;
+    option.text = localeNames[key] ? `${localeNames[key]} (${key})` : key;
     localeSelect.add(option);
   }
 

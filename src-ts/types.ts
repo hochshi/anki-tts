@@ -37,6 +37,7 @@ export interface EdgeVoice {
   readonly ShortName: string;
   readonly FriendlyName: string;
   readonly Locale: string;
+  readonly LocaleName: string;
 }
 
 export type TtsProvider = "edge" | "piper";
