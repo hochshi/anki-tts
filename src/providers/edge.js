@@ -1,7 +1,7 @@
+import { playAudio } from "../player.js";
 // Loaded lazily via dynamic ESM import, same as the original anki_tts.js.
 let ttsInstance = null;
 let edgeVoices = null;
-let edgeAudio = new Audio("");
 const EDGE_TTS_LIB_URL = "https://cdn.jsdelivr.net/npm/edge-tts-browser@latest/+esm";
 async function loadLib() {
     return import(/* @vite-ignore */ EDGE_TTS_LIB_URL);
@@ -54,19 +54,13 @@ function checkRelay() {
     }
     return relayAvailable;
 }
-async function playBlob(blob) {
-    const url = URL.createObjectURL(blob);
-    edgeAudio = new Audio(url);
-    console.log("Playing audio");
-    await edgeAudio.play();
-    edgeAudio.onended = () => URL.revokeObjectURL(url);
-}
 async function playViaRelay(text, voice) {
     const params = new URLSearchParams({ text, voice });
     const res = await fetch(`${RELAY_BASE}/tts?${params}`);
     if (!res.ok)
         throw new Error(`Edge TTS relay error: ${await res.text()}`);
-    await playBlob(await res.blob());
+    console.log("Playing audio");
+    await playAudio(await res.blob());
 }
 async function playDirect(text, voice) {
     if (!ttsInstance && !(await initEdgeTts())) {
@@ -85,7 +79,8 @@ async function playDirect(text, voice) {
             "Firefox, Safari, and Anki's own review window otherwise. Switch to the Piper engine " +
             "in Settings (offline, works everywhere) as another option.");
     }
-    await playBlob(blob);
+    console.log("Playing audio");
+    await playAudio(blob);
 }
 export async function edgeTtsPlay(text, voice = "zh-CN-XiaoxiaoNeural") {
     if (!text || !text.trim()) {

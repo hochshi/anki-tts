@@ -1,5 +1,6 @@
 import { createStyle, el, icon } from "./dom.js";
 import { installGlobalLogging, logLine } from "./log.js";
+import { stopPlayback, togglePlayPause } from "./player.js";
 import { edgeTtsPlay, getEdgeVoices, initEdgeTts } from "./providers/edge.js";
 import { getPiperVoices, piperTtsPlay } from "./providers/piper.js";
 let dict = {};
@@ -157,6 +158,7 @@ function toggleLog() {
     body.style.display = open ? "block" : "none";
 }
 export async function ttsPlay(text, voice) {
+    stopPlayback();
     const provider = getProvider();
     try {
         if (provider === "piper") {
@@ -180,10 +182,15 @@ export function setupTtsConfig() {
     const buttonContainer = el("div", { id: "ttsButtonContainer" }, null, document.body);
     const playBtn = el("button", { id: "ttsPlayButton" }, null, buttonContainer);
     playBtn.innerHTML = `${icon("play")}<span>Play</span>`;
-    playBtn.onclick = () => window.playTts?.();
+    playBtn.onclick = () => { if (!togglePlayPause())
+        window.playTts?.(); };
+    const stopBtn = el("button", { id: "ttsStopButton", title: "Stop" }, null, buttonContainer);
+    stopBtn.innerHTML = icon("stop");
+    stopBtn.onclick = () => stopPlayback();
     const configBtn = el("button", { id: "ttsShowConfig" }, null, buttonContainer);
     configBtn.innerHTML = `${icon("settings")}<span>Settings</span>`;
     configBtn.onclick = () => showConfig();
+    el("progress", { id: "ttsPlaybackProgress", max: "0", value: "0" }, null, document.body);
     const container = el("div", { id: "ttsConfigContainer", style: "display: none" }, null, document.body);
     const configDiv = el("div", { id: "msttsConfig" }, null, container);
     const closeBtn = el("div", { id: "closeBtn" }, null, configDiv);

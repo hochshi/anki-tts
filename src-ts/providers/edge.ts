@@ -1,9 +1,9 @@
+import { playAudio } from "../player.js";
 import { EdgeVoice } from "../types.js";
 
 // Loaded lazily via dynamic ESM import, same as the original anki_tts.js.
 let ttsInstance: any = null;
 let edgeVoices: EdgeVoice[] | null = null;
-let edgeAudio = new Audio("");
 
 const EDGE_TTS_LIB_URL = "https://cdn.jsdelivr.net/npm/edge-tts-browser@latest/+esm";
 
@@ -62,19 +62,12 @@ function checkRelay(): Promise<boolean> {
   return relayAvailable;
 }
 
-async function playBlob(blob: Blob): Promise<void> {
-  const url = URL.createObjectURL(blob);
-  edgeAudio = new Audio(url);
-  console.log("Playing audio");
-  await edgeAudio.play();
-  edgeAudio.onended = () => URL.revokeObjectURL(url);
-}
-
 async function playViaRelay(text: string, voice: string): Promise<void> {
   const params = new URLSearchParams({ text, voice });
   const res = await fetch(`${RELAY_BASE}/tts?${params}`);
   if (!res.ok) throw new Error(`Edge TTS relay error: ${await res.text()}`);
-  await playBlob(await res.blob());
+  console.log("Playing audio");
+  await playAudio(await res.blob());
 }
 
 async function playDirect(text: string, voice: string): Promise<void> {
@@ -98,7 +91,8 @@ async function playDirect(text: string, voice: string): Promise<void> {
     );
   }
 
-  await playBlob(blob);
+  console.log("Playing audio");
+  await playAudio(blob);
 }
 
 export async function edgeTtsPlay(text: string, voice = "zh-CN-XiaoxiaoNeural"): Promise<void> {

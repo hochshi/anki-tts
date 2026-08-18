@@ -1,5 +1,6 @@
 import { cachedFetch } from "../cache.js";
 import { logLine } from "../log.js";
+import { playAudio } from "../player.js";
 import { pcmToWav } from "../wav.js";
 import { PiperModelConfig, PiperVoice } from "../types.js";
 
@@ -24,7 +25,6 @@ interface PhonemizeResult {
   readonly phoneme_ids?: number[];
 }
 
-let piperAudio = new Audio("");
 let voicesPromise: Promise<Record<string, PiperVoice>> | null = null;
 let phonemizerPromise: Promise<{ phonemize(texts: string[], lang: string): PhonemizeResult[] }> | null = null;
 let ortReadyPromise: Promise<any> | null = null;
@@ -213,11 +213,8 @@ export async function piperTtsPlay(text: string, voiceKey: string, speakerId?: n
 
     onStatus?.("");
     const blob = pcmToWav([{ samples, sampleRate, numChannels: 1 }]);
-    const url = URL.createObjectURL(blob);
-    piperAudio = new Audio(url);
     logLine("log", "Playing audio");
-    await piperAudio.play();
-    piperAudio.onended = () => URL.revokeObjectURL(url);
+    await playAudio(blob);
   } finally {
     await session.release();
   }

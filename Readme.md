@@ -22,15 +22,25 @@ Then update the `playTts` method, change `{{Front}}` to field name. Lets say if 
 
 ```html
 <script>
+    stopTts?.();               // stop any audio left playing from the previous card
+
     function playTts() {
         let text = '{{Front}}';   // <-----   change Front to field name in card template
-        ttsPlay(text);            // uses whichever engine/voice is selected in Settings
+        ttsPlay(text);             // uses whichever engine/voice is selected in Settings
     }
 </script>
 ```
 
 Click Settings during review to pick an engine (Edge or Piper), locale and voice — for
-Piper, pick a speaker too if the voice has more than one. Then click Play.
+Piper, pick a speaker too if the voice has more than one. Then click Play; the button
+turns into Pause/Resume while audio is playing, with a Stop button and a progress bar
+next to it.
+
+The `stopTts?.()` line matters: Anki re-runs this inline `<script>` block on every card,
+so it reliably stops whatever the *previous* card was saying the instant the next one
+loads — without it, a long sentence you didn't wait out can keep playing over the next
+card. `ttsPlay()` also stops previous audio itself when *you* click Play again, so that
+part works either way; `stopTts?.()` is what covers advancing without clicking anything.
 
 The first play with a given Piper voice downloads its model (10-70MB depending on
 quality); later plays are instant. A collapsible Log section at the bottom of Settings

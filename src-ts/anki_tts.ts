@@ -11,9 +11,16 @@
  */
 import { edgeTtsPlay, initEdgeTts } from "./providers/edge.js";
 import { piperTtsPlay } from "./providers/piper.js";
+import { stopPlayback } from "./player.js";
 import { getEdgeLocal, getPiperLocal, setupTtsConfig, showConfig, ttsPlay } from "./ui.js";
 
 setupTtsConfig();
+
+// Defensive: stop any audio left over from a previous card. ttsPlay() also stops on every new
+// play, but Anki's classic inline <script> block (unlike this module) reliably re-runs on
+// every card - call window.stopTts() at the top of that block (outside playTts()) for the
+// case where the user advances cards fast enough that nothing gets clicked at all. See README.
+stopPlayback();
 
 document.addEventListener("DOMContentLoaded", () => {
   initEdgeTts().catch(error => console.error("Failed to initialize Edge TTS:", error));
@@ -23,6 +30,7 @@ document.addEventListener("DOMContentLoaded", () => {
 // compatibility with existing card templates that call them directly.
 (window as any).showConfig = showConfig;
 (window as any).ttsPlay = ttsPlay;
+(window as any).stopTts = stopPlayback;
 (window as any).getLocal = getEdgeLocal;
 (window as any).getPiperLocal = getPiperLocal;
 (window as any).edgeTtsPlay = edgeTtsPlay;

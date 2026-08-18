@@ -1,5 +1,6 @@
 import { cachedFetch } from "../cache.js";
 import { logLine } from "../log.js";
+import { playAudio } from "../player.js";
 import { pcmToWav } from "../wav.js";
 // Voice models: full, live catalog straight from the source repo (never bundled/mirrored,
 // so new voices show up automatically).
@@ -11,7 +12,6 @@ const ONNX_BASE = "https://cdn.jsdelivr.net/npm/onnxruntime-web@1.18.0/dist/";
 // Universal across every espeak-type Piper voice (verified against multiple models' own
 // phoneme_id_map): bos '^', eos '$', pad '_' interspersed between every phoneme.
 const PHONEME_ID = { pad: "_", bos: "^", eos: "$" };
-let piperAudio = new Audio("");
 let voicesPromise = null;
 let phonemizerPromise = null;
 let ortReadyPromise = null;
@@ -193,11 +193,8 @@ export async function piperTtsPlay(text, voiceKey, speakerId, onStatus) {
         logLine("log", `Synthesized ${samples.length} samples @ ${sampleRate}Hz (${(samples.length / sampleRate).toFixed(2)}s)`);
         onStatus?.("");
         const blob = pcmToWav([{ samples, sampleRate, numChannels: 1 }]);
-        const url = URL.createObjectURL(blob);
-        piperAudio = new Audio(url);
         logLine("log", "Playing audio");
-        await piperAudio.play();
-        piperAudio.onended = () => URL.revokeObjectURL(url);
+        await playAudio(blob);
     }
     finally {
         await session.release();
