@@ -211,8 +211,22 @@ export function setupTtsConfig() {
     providerSelect.value = getProvider();
     providerSelect.onchange = e => {
         localStorage.setItem("ttsProvider", e.target.value);
+        updateRelayRowVisibility();
         setConfig();
     };
+    const relayRow = el("div", { id: "relayRow" }, null, configDiv);
+    el("label", { id: "relayUrlLabel", for: "relayUrlInput" }, "Relay URL (optional)", relayRow);
+    const relayUrlInput = el("input", { id: "relayUrlInput", type: "text", placeholder: "http://127.0.0.1:8811" }, null, relayRow);
+    relayUrlInput.value = localStorage.getItem("ttsRelayUrl") || "";
+    relayUrlInput.onchange = e => localStorage.setItem("ttsRelayUrl", e.target.value.trim());
+    el("label", { id: "relayTokenLabel", for: "relayTokenInput" }, "Relay Token (optional)", relayRow);
+    const relayTokenInput = el("input", { id: "relayTokenInput", type: "password", placeholder: "only needed for hosted relays" }, null, relayRow);
+    relayTokenInput.value = localStorage.getItem("ttsRelayToken") || "";
+    relayTokenInput.onchange = e => localStorage.setItem("ttsRelayToken", e.target.value.trim());
+    function updateRelayRowVisibility() {
+        relayRow.style.display = getProvider() === "edge" ? "block" : "none";
+    }
+    updateRelayRowVisibility();
     el("label", { id: "localeSelectLabel", for: "localeSelect" }, "Locale", configDiv);
     el("select", { id: "localeSelect" }, null, configDiv);
     el("label", { id: "voiceSelectLabel", for: "voiceSelect" }, "Voice", configDiv);

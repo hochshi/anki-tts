@@ -35,28 +35,42 @@ export function getEdgeVoices() {
 // speech.platform.bing.com only accepts its websocket connection from the real Microsoft
 // Edge browser (verified: identical request 403s from Chrome, succeeds from Edge). Browsers
 // forbid JS from overriding the User-Agent header used for that check, so it can't be worked
-// around from this file directly. Instead: npm run relay runs a local Node process (see
-// relay-ts/edge-tts-relay.ts) that makes the same connection from outside the browser
-// sandbox, where custom headers are legal.
+// around from this file directly. Instead a relay (local Node process, see
+// relay-ts/edge-tts-relay.ts, or a hosted Cloudflare Worker, see worker/) makes the same
+// connection from outside the browser sandbox, where custom headers are legal.
 // We try that relay first and only fall back to the direct in-browser connection (which only
-// works in real Edge) if it isn't running.
-const RELAY_BASE = "http://127.0.0.1:8811";
+// works in real Edge) if it isn't reachable. URL/token are configurable in Settings so a
+// hosted worker can be used instead of the local default.
+const RELAY_BASE_DEFAULT = "http://127.0.0.1:8811";
 let relayAvailable = null;
+let relayCheckedUrl = "";
+function getRelayConfig() {
+    return {
+        url: (localStorage.getItem("ttsRelayUrl") || RELAY_BASE_DEFAULT).replace(/\/+$/, ""),
+        token: localStorage.getItem("ttsRelayToken") || ""
+    };
+}
+function relayHeaders(token) {
+    return token ? { Authorization: `Bearer ${token}` } : {};
+}
 function checkRelay() {
-    if (!relayAvailable) {
-        relayAvailable = fetch(`${RELAY_BASE}/health`, { signal: AbortSignal.timeout(400) })
+    const { url, token } = getRelayConfig();
+    if (!relayAvailable || relayCheckedUrl !== url) {
+        relayCheckedUrl = url;
+        relayAvailable = fetch(`${url}/health`, { headers: relayHeaders(token), signal: AbortSignal.timeout(1500) })
             .then(res => res.ok)
             .catch(() => false)
             .then(ok => {
-            console.log(ok ? "Edge TTS relay detected at " + RELAY_BASE : "Edge TTS relay not running — using direct connection (real Microsoft Edge only)");
+            console.log(ok ? "Edge TTS relay detected at " + url : "Edge TTS relay not running — using direct connection (real Microsoft Edge only)");
             return ok;
         });
     }
     return relayAvailable;
 }
 async function playViaRelay(text, voice) {
+    const { url, token } = getRelayConfig();
     const params = new URLSearchParams({ text, voice });
-    const res = await fetch(`${RELAY_BASE}/tts?${params}`);
+    const res = await fetch(`${url}/tts?${params}`, { headers: relayHeaders(token) });
     if (!res.ok)
         throw new Error(`Edge TTS relay error: ${await res.text()}`);
     console.log("Playing audio");

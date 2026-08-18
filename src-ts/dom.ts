@@ -44,7 +44,7 @@ export function createStyle(): void {
     background: rgba(128, 128, 128, .12);
 }
 
-#localeSelect, #voiceSelect, #providerSelect, #speakerSelect {
+#localeSelect, #voiceSelect, #providerSelect, #speakerSelect, #relayUrlInput, #relayTokenInput {
     width: 100%;
     padding: 6px;
     margin: 4px 0 2px;
@@ -53,6 +53,14 @@ export function createStyle(): void {
     border: 1px solid rgba(128, 128, 128, .4);
     background: Canvas;
     color: CanvasText;
+    font: inherit;
+}
+
+#relayRow label {
+    font-weight: 400;
+    font-size: 11.5px;
+    opacity: .75;
+    margin: 8px 0 0;
 }
 
 #closeBtn {
