@@ -1,9 +1,13 @@
 {
   "name": "anki_tts",
   "version": "1.0.2",
-  "description": "MS Edge TTS in Anki Card Template",
-  "main": "anki_tts.js",
+  "description": "MS Edge TTS and Piper (offline neural TTS) in Anki Card Template",
+  "main": "src/anki_tts.js",
+  "type": "module",
   "scripts": {
+    "build": "tsc",
+    "watch": "tsc -w",
+    "serve": "node scripts/serve.mjs",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
@@ -19,5 +23,8 @@
   "bugs": {
     "url": "https://github.com/krmanik/anki-tts/issues"
   },
-  "homepage": "https://github.com/krmanik/anki-tts#readme"
+  "homepage": "https://github.com/krmanik/anki-tts#readme",
+  "devDependencies": {
+    "typescript": "^5.5.0"
+  }
 }

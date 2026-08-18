@@ -12,15 +12,18 @@
 import { edgeTtsPlay, initEdgeTts } from "./providers/edge.js";
 import { piperTtsPlay } from "./providers/piper.js";
 import { getEdgeLocal, getPiperLocal, setupTtsConfig, showConfig, ttsPlay } from "./ui.js";
+
 setupTtsConfig();
+
 document.addEventListener("DOMContentLoaded", () => {
-    initEdgeTts().catch(error => console.error("Failed to initialize Edge TTS:", error));
+  initEdgeTts().catch(error => console.error("Failed to initialize Edge TTS:", error));
 });
+
 // Exposed for Anki card templates. getLocal()/edgeTtsPlay() are kept for backwards
 // compatibility with existing card templates that call them directly.
-window.showConfig = showConfig;
-window.ttsPlay = ttsPlay;
-window.getLocal = getEdgeLocal;
-window.getPiperLocal = getPiperLocal;
-window.edgeTtsPlay = edgeTtsPlay;
-window.piperTtsPlay = piperTtsPlay;
+(window as any).showConfig = showConfig;
+(window as any).ttsPlay = ttsPlay;
+(window as any).getLocal = getEdgeLocal;
+(window as any).getPiperLocal = getPiperLocal;
+(window as any).edgeTtsPlay = edgeTtsPlay;
+(window as any).piperTtsPlay = piperTtsPlay;
