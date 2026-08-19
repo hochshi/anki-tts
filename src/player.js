@@ -1,6 +1,7 @@
 import { icon } from "./dom.js";
 const g = window;
 function syncUI() {
+    const container = document.getElementById("ttsButtonContainer");
     const playBtn = document.getElementById("ttsPlayButton");
     const stopBtn = document.getElementById("ttsStopButton");
     const progress = document.getElementById("ttsPlaybackProgress");
@@ -8,11 +9,19 @@ function syncUI() {
         return;
     const audio = g.__ttsAudio;
     if (!audio) {
+        // The whole player hides between plays rather than sitting on the card as
+        // permanent chrome — a card can have many speak buttons (one per example
+        // sentence) and none of them need a floating Play/Stop/progress bar until
+        // one is actually pressed.
+        if (container)
+            container.style.display = "none";
         playBtn.innerHTML = `${icon("play")}<span>Play</span>`;
         stopBtn.style.display = "none";
         progress.style.display = "none";
         return;
     }
+    if (container)
+        container.style.display = "flex";
     stopBtn.style.display = "inline-flex";
     progress.style.display = "block";
     progress.max = audio.duration || 0;

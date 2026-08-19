@@ -24,7 +24,21 @@ export function createStyle(): void {
 #ttsButtonContainer {
     margin: 10px 0;
     display: flex;
+    flex-wrap: wrap;
     gap: 8px;
+}
+
+#ttsSettingsContainer {
+    margin: 10px 0;
+}
+
+/* The progress bar used to be its own full-width block straight under the
+   button row (it lived outside #ttsButtonContainer). Now it's inside the same
+   flex row as Play/Stop so the whole group can hide as one unit (see
+   syncUI() in player.ts) — flex-basis: 100% keeps it on its own line under
+   the buttons instead of squeezing into the leftover row width. */
+#ttsPlaybackProgress {
+    flex-basis: 100%;
 }
 
 #ttsButtonContainer button {

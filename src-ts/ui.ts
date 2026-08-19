@@ -189,6 +189,17 @@ export function setupTtsConfig(): void {
   createStyle();
   installGlobalLogging();
 
+  // Settings is a standalone control (its own container, its own id) so a card
+  // template can place it anywhere — e.g. a sidebar — independently of the
+  // player. The player itself (Play/Stop/progress) stays grouped in
+  // #ttsButtonContainer and hides as a whole while nothing is playing (see
+  // syncUI() in player.ts); a template that leaves it where it lands gets a
+  // bar that appears only during playback instead of permanent chrome.
+  const settingsContainer = el("div", { id: "ttsSettingsContainer" }, null, document.body);
+  const configBtn = el("button", { id: "ttsShowConfig" }, null, settingsContainer);
+  configBtn.innerHTML = `${icon("settings")}<span>Settings</span>`;
+  configBtn.onclick = () => showConfig();
+
   const buttonContainer = el("div", { id: "ttsButtonContainer" }, null, document.body);
   const playBtn = el("button", { id: "ttsPlayButton" }, null, buttonContainer);
   playBtn.innerHTML = `${icon("play")}<span>Play</span>`;
@@ -196,11 +207,8 @@ export function setupTtsConfig(): void {
   const stopBtn = el("button", { id: "ttsStopButton", title: "Stop" }, null, buttonContainer);
   stopBtn.innerHTML = icon("stop");
   stopBtn.onclick = () => stopPlayback();
-  const configBtn = el("button", { id: "ttsShowConfig" }, null, buttonContainer);
-  configBtn.innerHTML = `${icon("settings")}<span>Settings</span>`;
-  configBtn.onclick = () => showConfig();
 
-  el("progress", { id: "ttsPlaybackProgress", max: "0", value: "0" }, null, document.body);
+  el("progress", { id: "ttsPlaybackProgress", max: "0", value: "0" }, null, buttonContainer);
 
   const container = el("div", { id: "ttsConfigContainer", style: "display: none" }, null, document.body);
   const configDiv = el("div", { id: "msttsConfig" }, null, container);
