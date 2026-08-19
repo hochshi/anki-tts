@@ -202,11 +202,13 @@ export function setupTtsConfig() {
         ["edge", "Microsoft Edge (online)"],
         ["piper", "Piper (offline, on-device)"]
     ];
-    for (const [value, label] of providers) {
-        const option = document.createElement("option");
-        option.value = value;
-        option.text = label;
-        providerSelect.add(option);
+    if (providerSelect.options.length === 0) {
+        for (const [value, label] of providers) {
+            const option = document.createElement("option");
+            option.value = value;
+            option.text = label;
+            providerSelect.add(option);
+        }
     }
     providerSelect.value = getProvider();
     providerSelect.onchange = e => {
