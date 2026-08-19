@@ -196,15 +196,15 @@ export function setupTtsConfig(): void {
   // syncUI() in player.ts); a template that leaves it where it lands gets a
   // bar that appears only during playback instead of permanent chrome.
   const settingsContainer = el("div", { id: "ttsSettingsContainer" }, null, document.body);
-  const configBtn = el("button", { id: "ttsShowConfig" }, null, settingsContainer);
+  const configBtn = el("button", { id: "ttsShowConfig", class: "tappable" }, null, settingsContainer);
   configBtn.innerHTML = `${icon("settings")}<span>Settings</span>`;
   configBtn.onclick = () => showConfig();
 
   const buttonContainer = el("div", { id: "ttsButtonContainer" }, null, document.body);
-  const playBtn = el("button", { id: "ttsPlayButton" }, null, buttonContainer);
+  const playBtn = el("button", { id: "ttsPlayButton", class: "tappable" }, null, buttonContainer);
   playBtn.innerHTML = `${icon("play")}<span>Play</span>`;
   playBtn.onclick = () => { if (!togglePlayPause()) (window as any).playTts?.(); };
-  const stopBtn = el("button", { id: "ttsStopButton", title: "Stop" }, null, buttonContainer);
+  const stopBtn = el("button", { id: "ttsStopButton", title: "Stop", class: "tappable" }, null, buttonContainer);
   stopBtn.innerHTML = icon("stop");
   stopBtn.onclick = () => stopPlayback();
 
@@ -212,12 +212,12 @@ export function setupTtsConfig(): void {
 
   const container = el("div", { id: "ttsConfigContainer", style: "display: none" }, null, document.body);
   const configDiv = el("div", { id: "msttsConfig" }, null, container);
-  const closeBtn = el("div", { id: "closeBtn" }, null, configDiv);
+  const closeBtn = el("div", { id: "closeBtn", class: "tappable" }, null, configDiv);
   closeBtn.innerHTML = icon("x");
   closeBtn.onclick = () => { container.style.display = "none"; };
 
   el("label", { id: "providerSelectLabel", for: "providerSelect" }, "TTS Engine", configDiv);
-  const providerSelect = el("select", { id: "providerSelect" }, null, configDiv);
+  const providerSelect = el("select", { id: "providerSelect", class: "tappable" }, null, configDiv);
   const providers: Array<[TtsProvider, string]> = [
     ["edge", "Microsoft Edge (online)"],
     ["piper", "Piper (offline, on-device)"]
@@ -238,12 +238,12 @@ export function setupTtsConfig(): void {
 
   const relayRow = el("div", { id: "relayRow" }, null, configDiv);
   el("label", { id: "relayUrlLabel", for: "relayUrlInput" }, "Relay URL (optional)", relayRow);
-  const relayUrlInput = el("input", { id: "relayUrlInput", type: "text", placeholder: "http://127.0.0.1:8811" }, null, relayRow);
+  const relayUrlInput = el("input", { id: "relayUrlInput", type: "text", placeholder: "http://127.0.0.1:8811", class: "tappable" }, null, relayRow);
   relayUrlInput.value = localStorage.getItem("ttsRelayUrl") || "";
   relayUrlInput.onchange = e => localStorage.setItem("ttsRelayUrl", (e.target as HTMLInputElement).value.trim());
 
   el("label", { id: "relayTokenLabel", for: "relayTokenInput" }, "Relay Token (optional)", relayRow);
-  const relayTokenInput = el("input", { id: "relayTokenInput", type: "password", placeholder: "only needed for hosted relays" }, null, relayRow);
+  const relayTokenInput = el("input", { id: "relayTokenInput", type: "password", placeholder: "only needed for hosted relays", class: "tappable" }, null, relayRow);
   relayTokenInput.value = localStorage.getItem("ttsRelayToken") || "";
   relayTokenInput.onchange = e => localStorage.setItem("ttsRelayToken", (e.target as HTMLInputElement).value.trim());
 
@@ -253,14 +253,14 @@ export function setupTtsConfig(): void {
   updateRelayRowVisibility();
 
   el("label", { id: "localeSelectLabel", for: "localeSelect" }, "Locale", configDiv);
-  el("select", { id: "localeSelect" }, null, configDiv);
+  el("select", { id: "localeSelect", class: "tappable" }, null, configDiv);
 
   el("label", { id: "voiceSelectLabel", for: "voiceSelect" }, "Voice", configDiv);
-  el("select", { id: "voiceSelect" }, null, configDiv);
+  el("select", { id: "voiceSelect", class: "tappable" }, null, configDiv);
 
   const speakerRow = el("div", { id: "speakerRow", style: "display: none" }, null, configDiv);
   el("label", { id: "speakerSelectLabel", for: "speakerSelect" }, "Speaker", speakerRow);
-  el("select", { id: "speakerSelect" }, null, speakerRow);
+  el("select", { id: "speakerSelect", class: "tappable" }, null, speakerRow);
 
   el("div", { id: "ttsStatus" }, null, configDiv);
   el("progress", { id: "ttsProgress", max: "100", value: "0" }, null, configDiv);
@@ -272,7 +272,7 @@ export function setupTtsConfig(): void {
   const logTitle = el("div", { id: "ttsLogTitle" }, null, logToggleRow);
   logTitle.innerHTML = `${icon("terminal")}<span>Log</span>`;
   const logControls = el("div", { id: "ttsLogControls" }, null, logToggleRow);
-  const clearLogBtn = el("button", { id: "clearLogBtn", title: "Clear log" }, null, logControls);
+  const clearLogBtn = el("button", { id: "clearLogBtn", title: "Clear log", class: "tappable" }, null, logControls);
   clearLogBtn.innerHTML = icon("trash");
   clearLogBtn.onclick = e => {
     e.stopPropagation();
@@ -281,6 +281,7 @@ export function setupTtsConfig(): void {
   };
   const chevron = el("span", { id: "ttsLogChevron" }, null, logControls);
   chevron.innerHTML = icon("chevronDown");
+  logToggleRow.classList.add("tappable");
   logToggleRow.onclick = () => toggleLog();
 
   const logBody = el("div", { id: "ttsLogBody" }, null, logSection);

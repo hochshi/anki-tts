@@ -2,6 +2,16 @@ export function createStyle(): void {
   if (document.getElementById("ttsStyle")) return;
 
   const style = `
+/* AnkiMobile reads a tap anywhere on the card as "show answer" unless the
+   element carries this class, so every clickable piece of this UI has it
+   (see setupTtsConfig() in ui.ts). Purely cosmetic here — the class name
+   itself is what AnkiMobile checks — but it also kills the tap highlight
+   flash and the double-tap-to-zoom delay on a real touch device. */
+.tappable {
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+}
+
 #ttsConfigContainer {
     position: fixed;
     top: 50%;
