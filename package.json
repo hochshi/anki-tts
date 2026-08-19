@@ -1,6 +1,6 @@
 {
   "name": "anki_tts",
-  "version": "1.1.2",
+  "version": "1.1.3",
   "description": "MS Edge TTS and Piper (offline neural TTS) in Anki Card Template",
   "main": "src/anki_tts.js",
   "type": "module",
