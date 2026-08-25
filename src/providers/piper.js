@@ -118,6 +118,34 @@ function toPhonemeIds(phonemes, modelConfig) {
     push(PHONEME_ID.eos);
     return ids;
 }
+const SENTENCE_END = /[。！？.!?]/;
+const SEMICOLON = /[；;]/;
+const COMMA = /[，、,]/;
+export function splitForPauses(text) {
+    const clauses = [];
+    let buf = "";
+    for (const ch of text) {
+        buf += ch;
+        if (SENTENCE_END.test(ch)) {
+            clauses.push({ text: buf, pauseMs: 350 });
+            buf = "";
+        }
+        else if (SEMICOLON.test(ch)) {
+            clauses.push({ text: buf, pauseMs: 250 });
+            buf = "";
+        }
+        else if (COMMA.test(ch)) {
+            clauses.push({ text: buf, pauseMs: 180 });
+            buf = "";
+        }
+    }
+    if (buf.trim())
+        clauses.push({ text: buf, pauseMs: 0 });
+    const kept = clauses.filter((c) => c.text.trim());
+    if (kept.length)
+        kept[kept.length - 1].pauseMs = 0;
+    return kept;
+}
 export function findModelFile(voice) {
     const modelFile = Object.keys(voice.files).find(f => f.endsWith(".onnx"));
     if (!modelFile)
@@ -167,32 +195,47 @@ export async function piperTtsPlay(text, voiceKey, speakerId, onStatus) {
     const noiseScale = modelConfig.inference?.noise_scale ?? 0.667;
     const lengthScale = modelConfig.inference?.length_scale ?? 1;
     const noiseW = modelConfig.inference?.noise_w ?? 0.8;
+    const clauses = splitForPauses(text.trim());
     onStatus?.("Phonemizing…");
-    const [result] = phonemize([text.trim()], modelConfig.espeak.voice);
-    const phonemes = result?.phonemes ?? [];
-    const ids = result?.phoneme_ids ?? toPhonemeIds(phonemes, modelConfig);
-    logLine("log", "Phonemes:", phonemes.join(" "));
-    logLine("log", "Phoneme ids:", ids.length, "ids");
-    if (!ids.length) {
-        onStatus?.("");
-        return;
-    }
+    const results = phonemize(clauses.map((c) => c.text), modelConfig.espeak.voice);
     onStatus?.("Loading model…");
     const session = await ort.InferenceSession.create(modelBuffer);
     try {
-        onStatus?.("Synthesizing…");
-        const feeds = {
-            input: new ort.Tensor("int64", ids, [1, ids.length]),
-            input_lengths: new ort.Tensor("int64", [ids.length]),
-            scales: new ort.Tensor("float32", [noiseScale, lengthScale, noiseW])
-        };
-        if (speakerId != null)
-            feeds.sid = new ort.Tensor("int64", [speakerId]);
-        const { output } = await session.run(feeds);
-        const samples = output.data;
-        logLine("log", `Synthesized ${samples.length} samples @ ${sampleRate}Hz (${(samples.length / sampleRate).toFixed(2)}s)`);
+        const chunks = [];
+        for (let i = 0; i < clauses.length; i++) {
+            const result = results[i];
+            const phonemes = result?.phonemes ?? [];
+            const ids = result?.phoneme_ids ?? toPhonemeIds(phonemes, modelConfig);
+            logLine("log", "Phonemes:", phonemes.join(" "));
+            logLine("log", "Phoneme ids:", ids.length, "ids");
+            if (!ids.length)
+                continue;
+            onStatus?.(clauses.length > 1 ? `Synthesizing… (${i + 1}/${clauses.length})` : "Synthesizing…");
+            const feeds = {
+                input: new ort.Tensor("int64", ids, [1, ids.length]),
+                input_lengths: new ort.Tensor("int64", [ids.length]),
+                scales: new ort.Tensor("float32", [noiseScale, lengthScale, noiseW])
+            };
+            if (speakerId != null)
+                feeds.sid = new ort.Tensor("int64", [speakerId]);
+            const { output } = await session.run(feeds);
+            chunks.push({ samples: output.data, sampleRate, numChannels: 1 });
+            // The gap that makes punctuation actually pause, since the model
+            // itself won't: real silence spliced between clauses rather than
+            // trusting the phonemizer to have encoded a break for "," or ".".
+            if (clauses[i].pauseMs > 0) {
+                const silence = new Float32Array(Math.round((clauses[i].pauseMs / 1000) * sampleRate));
+                chunks.push({ samples: silence, sampleRate, numChannels: 1 });
+            }
+        }
+        if (!chunks.length) {
+            onStatus?.("");
+            return;
+        }
+        const totalSamples = chunks.reduce((n, c) => n + c.samples.length, 0);
+        logLine("log", `Synthesized ${totalSamples} samples @ ${sampleRate}Hz across ${clauses.length} clause(s)`);
         onStatus?.("");
-        const blob = pcmToWav([{ samples, sampleRate, numChannels: 1 }]);
+        const blob = pcmToWav(chunks);
         logLine("log", "Playing audio");
         await playAudio(blob);
     }
