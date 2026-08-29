@@ -271,8 +271,13 @@ export async function piperTtsPlay(text, voiceKey, speakerId, onStatus) {
             input_lengths: new ort.Tensor("int64", [ids.length]),
             scales: new ort.Tensor("float32", [noiseScale, lengthScale, noiseW])
         };
-        if (speakerId != null)
+        const supportsSpeakerId = Array.isArray(session.inputNames)
+            ? session.inputNames.includes("sid")
+            : (voice.num_speakers || 0) > 1;
+        if (speakerId != null && supportsSpeakerId)
             feeds.sid = new ort.Tensor("int64", [speakerId]);
+        else if (speakerId != null)
+            logLine("log", "Ignoring stale speaker id for single-speaker voice:", voiceKey, speakerId);
         const { output } = await session.run(feeds);
         chunks.push({ samples: output.data, sampleRate, numChannels: 1 });
         // The gap that makes punctuation actually pause, since the model
